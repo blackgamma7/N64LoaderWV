@@ -66,17 +66,17 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 	ArrayList<BlockInfo> initSections = new ArrayList<N64LoaderWVLoader.BlockInfo>()
 	{
 		{
-			add(new BlockInfo(0x00000000, 0x03EFFFFF, "RDRAM Memory",".rdram"));
-			add(new BlockInfo(0x03F00000, 0x03FFFFFF, "RDRAM Registers",".rdreg"));
-			add(new BlockInfo(0x04000000, 0x040FFFFF, "SP Registers",".spreg"));
-			add(new BlockInfo(0x04100000, 0x041FFFFF, "DP Command Registers",".dpcreg"));
-			add(new BlockInfo(0x04200000, 0x042FFFFF, "DP Span Registers",".dpsreg"));
-			add(new BlockInfo(0x04300000, 0x043FFFFF, "MIPS Interface (MI) Registers",".mireg"));
-			add(new BlockInfo(0x04400000, 0x044FFFFF, "Video Interface (VI) Registers",".vireg"));
-			add(new BlockInfo(0x04500000, 0x045FFFFF, "Audio Interface (AI) Registers",".aireg"));
-			add(new BlockInfo(0x04600000, 0x046FFFFF, "Peripheral Interface (PI) Registers",".pireg"));
-			add(new BlockInfo(0x04700000, 0x047FFFFF, "RDRAM Interface (RI) Registers",".rireg"));
-			add(new BlockInfo(0x04800000, 0x048FFFFF, "Serial Interface (SI) Registers",".sireg"));
+			//add(new BlockInfo(0x00000000, 0x03EFFFFF, "RDRAM Memory",".rdram"));
+			add(new BlockInfo(0xA3F00000, 0xA3000027, "RDRAM Registers",".rdreg"));
+			add(new BlockInfo(0xA4000000, 0xA4001FFF, "SP Registers",".spreg"));
+			add(new BlockInfo(0xA4100000, 0xA410001F, "DP Command Registers",".dpcreg"));
+			add(new BlockInfo(0xA4200000, 0xA42FFFFF, "DP Span Registers",".dpsreg"));
+			add(new BlockInfo(0xA4300000, 0xA430000f, "MIPS Interface (MI) Registers",".mireg"));
+			add(new BlockInfo(0xA4400000, 0xA4400037, "Video Interface (VI) Registers",".vireg"));
+			add(new BlockInfo(0xA4500000, 0xA450001f, "Audio Interface (AI) Registers",".aireg"));
+			add(new BlockInfo(0xA4600000, 0xA4600033, "Peripheral Interface (PI) Registers",".pireg"));
+			add(new BlockInfo(0xA4700000, 0xA470001f, "RDRAM Interface (RI) Registers",".rireg"));
+			add(new BlockInfo(0xA4800000, 0xA48000FF, "Serial Interface (SI) Registers",".sireg"));
 			add(new BlockInfo(0x1FC00000, 0x1FC007BF, "PIF Boot ROM",".pifrom"));
 			add(new BlockInfo(0x1FC007C0, 0x1FC007FF, "PIF RAM",".pifram"));
 			add(new BlockInfo(0x80000000, 0x800003FF, "Interrupt Vector Table",".ivt"));
@@ -163,7 +163,7 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 
 			Log.info("N64 Loader: Creating segment ROM");
 			Structure header_struct = N64Header.getDataStructure();
-			MakeBlock(program, ".rom", "ROM image", 0xB4000000, bapROM.getInputStream(0), (int)bapROM.length(), "101", header_struct, log, monitor);
+			MakeBlock(program, ".rom", "ROM image", 0xB0000000, bapROM.getInputStream(0), (int)bapROM.length(), "100", header_struct, log, monitor);
 
 			Log.info("N64 Loader: Creating segment BOOT");
 			MakeBlock(program, ".boot", "ROM bootloader", 0xA4000040, bapROM.getInputStream(0x40),  0xFC0, "111", null, log, monitor);
