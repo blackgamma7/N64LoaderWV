@@ -118,8 +118,12 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 	}
 
 	@Override
+	protected void load(Program program, ImporterSettings settings) throws CancelledException, IOException {
+		this.load(settings.provider(), settings.loadSpec(), settings.options(), program, settings.monitor(), settings.log());		
+	}	
+	
 	protected void load(ByteProvider provider, LoadSpec loadSpec, List<Option> options, Program program,
-			TaskMonitor monitor, MessageLog log) throws CancelledException, IOException {
+			TaskMonitor monitor, MessageLog log) throws IOException {
 		Log.info("N64 Loader: Checking Endianess");
 		byte[] data;
 		BinaryReader br = new BinaryReader(provider, false);
@@ -447,8 +451,7 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 	}
 
 	@Override
-	public List<Option> getDefaultOptions(ByteProvider provider, LoadSpec loadSpec, DomainObject domainObject,
-			boolean isLoadIntoProgram) {
+	public List<Option> getDefaultOptions(ByteProvider provider, LoadSpec loadSpec,	DomainObject domainObject, boolean loadIntoProgram, boolean mirrorFsLayout) {
 		List<Option> list = new ArrayList<Option>();
 		list.add(new Option("Signature file", ""));
 		list.add(new Option("Modem.bin file", ""));
