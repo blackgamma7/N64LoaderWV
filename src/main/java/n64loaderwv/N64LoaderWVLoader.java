@@ -22,7 +22,6 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.python.jline.internal.Log;
 
 import ghidra.app.util.MemoryBlockUtils;
 import ghidra.app.util.Option;
@@ -81,6 +80,11 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 			add(new BlockInfo(0x80000000, 0x800003FF, "Interrupt Vector Table", ".ivt"));
 		}
 	};
+	
+	public N64LoaderWVLoader() {
+		Msg.info(this, "N64 Loader: Loaded class");
+	}
+	
 
 	@Override
 	public String getName() {
@@ -90,26 +94,26 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 	@Override
 	public Collection<LoadSpec> findSupportedLoadSpecs(ByteProvider provider) throws IOException {
 		List<LoadSpec> loadSpecs = new ArrayList<>();
-		Log.info("N64 Loader: Checking Signature");
+		Msg.info(this, "N64 Loader: Checking Signature");
 		BinaryReader br = new BinaryReader(provider, false);
 		int header = br.readInt(0);
 		boolean valid = false;
 		switch (header) {
 		case 0x80371240:
 		case 0x80270740:
-			Log.info("N64 Loader: Found matching header for big endian");
+			Msg.info(this, "N64 Loader: Found matching header for big endian");
 			valid = true;
 			break;
 		case 0x37804012:
-			Log.info("N64 Loader: Found matching header for mixed endian");
+			Msg.info(this, "N64 Loader: Found matching header for mixed endian");
 			valid = true;
 			break;
 		case 0x40123780:
-			Log.info("N64 Loader: Found matching header for little endian");
+			Msg.info(this, "N64 Loader: Found matching header for little endian");
 			valid = true;
 			break;
 		default:
-			Log.info(String.format("N64 Loader: Found unknown header 0x%08X", header));
+			Msg.info(this, String.format("N64 Loader: Found unknown header 0x%08X", header));
 			break;
 		}
 		if (valid)
@@ -124,7 +128,7 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 	
 	protected void load(ByteProvider provider, LoadSpec loadSpec, List<Option> options, Program program,
 			TaskMonitor monitor, MessageLog log) throws IOException {
-		Log.info("N64 Loader: Checking Endianess");
+		Msg.info(this, "N64 Loader: Checking Endianess");
 		byte[] data;
 		BinaryReader br = new BinaryReader(provider, false);
 		int header = br.readInt(0);
@@ -134,23 +138,23 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 		case 0x80270740:
 			break;
 		case 0x37804012:
-			Log.info("N64 Loader: Fixing mixed endian");
+			Msg.info(this, "N64 Loader: Fixing mixed endian");
 			MixedSwap(buffROM);
 			break;
 		case 0x40123780:
-			Log.info("N64 Loader: Fixing little endian");
+			Msg.info(this, "N64 Loader: Fixing little endian");
 			LittleSwap(buffROM);
 			break;
 		}
 
 		ByteArrayProvider bapROM = new ByteArrayProvider(buffROM);
-		Log.info("N64 Loader: Loading header");
+		Msg.info(this, "N64 Loader: Loading header");
 		N64Header h = new N64Header(buffROM);
 
 		for (BlockInfo bli : initSections) {
 			long size = (bli.end + 1) - bli.start;
 			monitor.setMessage("N64 Loader: Creating segment " + bli.name);
-			Log.info("N64 Loader: Creating segment " + bli.name);
+			Msg.info(this, "N64 Loader: Creating segment " + bli.name);
 			ByteArrayProvider bapBlock = new ByteArrayProvider(new byte[(int) size]);
 			if (bli.desc.equals(".pifrom")) {
 				if (!((String) options.get(2).getValue()).isEmpty()) {
@@ -172,16 +176,16 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 			bapBlock.close();
 		}
 
-		Log.info("N64 Loader: Creating segment ROM");
+		Msg.info(this, "N64 Loader: Creating segment ROM");
 		Structure header_struct = N64Header.getDataStructure();
 		MakeBlock(program, ".rom", "ROM image", 0xB0000000, bapROM.getInputStream(0), (int) bapROM.length(), "100",
 				header_struct, log, monitor);
 
-		Log.info("N64 Loader: Creating segment BOOT");
+		Msg.info(this, "N64 Loader: Creating segment BOOT");
 		MakeBlock(program, ".boot", "ROM bootloader", 0xA4000040, bapROM.getInputStream(0x40), 0xFC0, "111", null, log,
 				monitor);
 
-		Log.info("N64 Loader: Creating segment RAM");
+		Msg.info(this, "N64 Loader: Creating segment RAM");
 		if(!((String) options.get(3).getValue()).isEmpty()) {
 			String filePath = (String) options.get(3).getValue();
 			data = Arrays.copyOfRange(Files.readAllBytes(Paths.get(filePath)), 0x400, 0x3F00000);
@@ -211,7 +215,7 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 			}
 		}
 		if (!((String) options.get(1).getValue()).isEmpty()) {
-			Log.info("N64 Loader: Loading modem ROM image");
+			Msg.info(this, "N64 Loader: Loading modem ROM image");
 			String filePath = (String) options.get(1).getValue();
 			byte[] modem_rom = Files.readAllBytes(Paths.get(filePath));
 			ByteArrayProvider bapModemROM = new ByteArrayProvider(modem_rom);
@@ -344,7 +348,7 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 		} catch (Exception ex) {
 		}
 
-		Log.info("N64 Loader: Done Loading");
+		Msg.info(this, "N64 Loader: Done Loading");
 	}
 
 	public void MakeBlock(Program program, String name, String desc, long address, InputStream s, int size,
@@ -396,7 +400,7 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 
 	public void ApplyN64sym(byte[] rom, long loadAddress, String sigPath, Program program, TaskMonitor monitor)
 			throws IOException, InvalidInputException {
-		Log.info("N64 Loader: Trying to loading signature file as N64sym format");
+		Msg.info(this, "N64 Loader: Trying to loading signature file as N64sym format");
 		List<String> lines = Files.readAllLines(Paths.get(sigPath));
 		for (String line : lines) {
 			String[] parts = line.split(" ");
@@ -407,14 +411,14 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 			if (address >= loadAddress) {
 				SymbolUtilities.createPreferredLabelOrFunctionSymbol(program, MakeAddress(address), null, name,
 						SourceType.ANALYSIS);
-				Log.info("N64 Loader: Loaded Symbol at " + String.format("0x%08X", address) + " Name=" + name);
+				Msg.info(this, "N64 Loader: Loaded Symbol at " + String.format("0x%08X", address) + " Name=" + name);
 			}
 		}
 	}
 
 	public void ScanPatterns(byte[] rom, long loadAddress, String sigPath, Program program, TaskMonitor monitor)
 			throws IOException, InvalidInputException {
-		Log.info("N64 Loader: Trying to loading signature file as default format");
+		Msg.info(this, "N64 Loader: Trying to loading signature file as default format");
 		ArrayList<SigPattern> patterns = new ArrayList<SigPattern>();
 		List<String> lines = Files.readAllLines(Paths.get(sigPath));
 		int maxPatLen = 32;
@@ -427,7 +431,7 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 				maxPatLen = pat.pattern.length;
 			patterns.add(pat);
 		}
-		Log.info("N64 Loader: Scanning for patterns (" + patterns.size() + ")...");
+		Msg.info(this, "N64 Loader: Scanning for patterns (" + patterns.size() + ")...");
 		monitor.initialize(rom.length - maxPatLen);
 		monitor.setMessage("Scanning for patterns (" + patterns.size() + ")...");
 		for (int i = 0; i < rom.length - maxPatLen; i += 4) {
@@ -441,7 +445,7 @@ public class N64LoaderWVLoader extends AbstractLibrarySupportLoader {
 					if (addr != null) {
 						SymbolUtilities.createPreferredLabelOrFunctionSymbol(program, addr, null, sig.name,
 								SourceType.ANALYSIS);
-						Log.info("N64 Loader: Found Symbol at " + String.format("0x%08X", address) + " Name="
+						Msg.info(this, "N64 Loader: Found Symbol at " + String.format("0x%08X", address) + " Name="
 								+ sig.name);
 					}
 					break;
